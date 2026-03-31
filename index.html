@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monflix Cramberry</title>
+    <title>Monflix - Cineberry</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,6 +11,7 @@
     <nav>
         <div class="nav-left">
             <a href="#" class="logo">MONFLIX</a>
+            <button onclick="choisirFilmAleatoire()" class="btn-random">🎲 Hasard</button>
         </div>
         <div class="search-container">
             <input type="text" id="filmInput" class="search-bar" placeholder="Rechercher un film..." oninput="rechercherEnDirect()">
@@ -32,6 +33,9 @@
         <div class="modal-content-info">
             <h1 id="modalTitle"></h1>
             <p id="modalInfo" class="meta-info"></p>
+            
+            <div id="streamingLinks" class="streaming-container"></div>
+            
             <p id="modalDesc"></p>
             
             <div id="videoPlayer"></div>
@@ -42,10 +46,9 @@
         </div>
     </div>
 
-    
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

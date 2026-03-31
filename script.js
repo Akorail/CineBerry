@@ -1,4 +1,4 @@
-// 1. Configuration Firebase
+// CONFIGURATION FIREBASE
 const firebaseConfig = {
     apiKey: "AIzaSyB3unK3pRold7z7a-qxbLDTDNvByykw1H4",
     authDomain: "cineberry.firebaseapp.com",
@@ -9,75 +9,52 @@ const firebaseConfig = {
     databaseURL: "https://cineberry-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-// 2. Initialisation Firebase
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// 3. Variables Globales
 const API_KEY = '9fa60350cd740b9049ebef19f4e22487';
 let maListe = [];
 
-// 4. SYNCHRONISATION TEMPS RÉEL
-// Cette fonction écoute Firebase. Si tu ajoutes un film sur PC, il apparaît sur Tel instantanément.
+// SYNCHRONISATION CLOUD
 database.ref('films').on('value', (snapshot) => {
     const data = snapshot.val();
-    // Firebase stocke parfois les tableaux comme des objets, on assure la conversion
     maListe = data ? Object.values(data) : [];
     afficherListe();
-    console.log("Catalogue mis à jour depuis le Cloud ☁️");
+    console.log("Cloud synchronisé ☁️");
 });
 
-// 5. RECHERCHE EN DIRECT (AUTO-COMPLÉTION)
+// RECHERCHE AUTO-COMPLÉTION
 async function rechercherEnDirect() {
     const query = document.getElementById('filmInput').value.trim();
     const dropdown = document.getElementById('searchResults');
 
-    if (query.length < 2) {
-        dropdown.style.display = 'none';
-        return;
-    }
+    if (query.length < 2) { dropdown.style.display = 'none'; return; }
 
     try {
-        const url = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}&language=fr-FR`;
-        const res = await fetch(url);
+        const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}&language=fr-FR`);
         const data = await res.json();
 
-        if (data.results && data.results.length > 0) {
+        if (data.results) {
             dropdown.innerHTML = "";
             dropdown.style.display = 'block';
-
             data.results.slice(0, 8).forEach(film => {
                 const item = document.createElement('div');
                 item.className = "result-item";
-                const poster = film.poster_path ? `https://image.tmdb.org/t/p/w92${film.poster_path}` : 'https://via.placeholder.com/40x60?text=No+Img';
-
-                item.innerHTML = `
-                    <img src="${poster}">
-                    <div class="info">
-                        <div class="title" style="font-weight:bold; font-size:0.9rem;">${film.title}</div>
-                        <div class="year" style="font-size:0.8rem; color:#888;">${film.release_date ? film.release_date.split('-')[0] : 'Année inconnue'}</div>
-                    </div>
-                `;
-
+                const img = film.poster_path ? `https://image.tmdb.org/t/p/w92${film.poster_path}` : 'https://via.placeholder.com/40x60';
+                item.innerHTML = `<img src="${img}"><div class="info"><b>${film.title}</b><br><small>${film.release_date ? film.release_date.split('-')[0] : ''}</small></div>`;
                 item.onclick = () => selectionnerFilm(film.id);
                 dropdown.appendChild(item);
             });
         }
-    } catch (err) {
-        console.error("Erreur recherche TMDB:", err);
-    }
+    } catch (e) { console.error(e); }
 }
 
-// 6. SÉLECTION ET AJOUT AU CLOUD
+// AJOUT AU CATALOGUE
 async function selectionnerFilm(id) {
     document.getElementById('searchResults').style.display = 'none';
     document.getElementById('filmInput').value = "";
 
-    // Vérification anti-doublon
-    if (maListe.some(f => f.id === id)) {
-        alert("Ce film est déjà dans ton catalogue !");
-        return;
-    }
+    if (maListe.some(f => f.id === id)) { alert("Déjà présent !"); return; }
 
     try {
         const res = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}&language=fr-FR`);
@@ -91,36 +68,30 @@ async function selectionnerFilm(id) {
             note: m.vote_average.toFixed(1),
             poster: `https://image.tmdb.org/t/p/w500${m.poster_path}`,
             banner: `https://image.tmdb.org/t/p/original${m.backdrop_path}`,
-            videoUrl: "" // À remplir manuellement pour tes fichiers MP4
+            videoUrl: "",
+            links: { netflix: "", disney: "", amazon: "" }
         };
 
-        // On ajoute au début du tableau local
         maListe.unshift(nouveau);
-
-        // On envoie la mise à jour à Firebase
         sauvegarder();
-    } catch (err) {
-        console.error("Erreur récupération détails:", err);
-    }
+    } catch (e) { console.error(e); }
 }
 
-// 7. AFFICHAGE DE LA GRILLE
+// AFFICHAGE
 function afficherListe() {
     const grid = document.getElementById('catalogGrid');
     if (!grid) return;
-
     grid.innerHTML = "";
-
     maListe.forEach(m => {
         const card = document.createElement('div');
         card.className = "film-card";
         card.onclick = () => ouvrirModal(m.id);
-        card.innerHTML = `<img src="${m.poster}" alt="${m.titre}" loading="lazy">`;
+        card.innerHTML = `<img src="${m.poster}" alt="${m.titre}">`;
         grid.appendChild(card);
     });
 }
 
-// 8. GESTION DE LA MODALE
+// MODALE ET STREAMING
 function ouvrirModal(id) {
     const m = maListe.find(f => f.id === id);
     if (!m) return;
@@ -128,62 +99,46 @@ function ouvrirModal(id) {
     document.getElementById('modalBanner').style.backgroundImage = `url(${m.banner})`;
     document.getElementById('modalTitle').innerText = m.titre;
     document.getElementById('modalInfo').innerText = `${m.duree} min | ⭐ ${m.note}/10`;
-    document.getElementById('modalDesc').innerText = m.desc || "Aucun synopsis disponible.";
+    document.getElementById('modalDesc').innerText = m.desc || "Pas de synopsis.";
 
-    // Configuration du bouton supprimer
-    document.getElementById('btnDelete').onclick = () => supprimerFilm(m.id);
+    const streamDiv = document.getElementById('streamingLinks');
+    streamDiv.innerHTML = "";
+    if (m.links) {
+        if (m.links.netflix) streamDiv.innerHTML += `<a href="${m.links.netflix}" target="_blank" class="stream-link link-netflix">Netflix</a>`;
+        if (m.links.disney) streamDiv.innerHTML += `<a href="${m.links.disney}" target="_blank" class="stream-link link-disney">Disney+</a>`;
+        if (m.links.amazon) streamDiv.innerHTML += `<a href="${m.links.amazon}" target="_blank" class="stream-link link-prime">Prime</a>`;
+    }
 
-    // Lecteur Vidéo MP4
     const vDiv = document.getElementById('videoPlayer');
-    vDiv.innerHTML = m.videoUrl ?
-        `<video width="100%" controls style="margin-top:20px; border-radius:8px;">
-            <source src="${m.videoUrl}" type="video/mp4">
-         </video>` :
-        `<p style="color:#666; font-style:italic; margin-top:20px;">Aucun fichier MP4 lié.</p>`;
+    vDiv.innerHTML = m.videoUrl ? `<video width="100%" controls style="margin-top:20px; border-radius:8px;"><source src="${m.videoUrl}" type="video/mp4"></video>` : "";
 
+    document.getElementById('btnDelete').onclick = () => supprimerFilm(m.id);
     document.getElementById('movieModal').style.display = 'block';
     document.getElementById('modalOverlay').style.display = 'block';
-    document.body.style.overflow = 'hidden';
 }
 
 function fermerModal() {
     document.getElementById('movieModal').style.display = 'none';
     document.getElementById('modalOverlay').style.display = 'none';
-    document.getElementById('videoPlayer').innerHTML = ""; // Stop la vidéo
-    document.body.style.overflow = 'auto';
+    document.getElementById('videoPlayer').innerHTML = "";
 }
 
-// 9. SUPPRESSION ET SAUVEGARDE
 function supprimerFilm(id) {
-    if (confirm("Supprimer ce film de ton catalogue Cloud ?")) {
+    if (confirm("Supprimer ?")) {
         maListe = maListe.filter(f => f.id !== id);
         sauvegarder();
         fermerModal();
     }
 }
 
-function sauvegarder() {
-    // Écrase la version sur Firebase avec la nouvelle liste
-    database.ref('films').set(maListe);
-}
+function sauvegarder() { database.ref('films').set(maListe); }
 
-// 10. FONCTION BONUS : FILM ALÉATOIRE
-// Tu peux appeler cette fonction via un bouton ou la console pour choisir un film au hasard
 function choisirFilmAleatoire() {
-    if (maListe.length === 0) {
-        alert("Ton catalogue est vide !");
-        return;
-    }
-    const indexHasard = Math.floor(Math.random() * maListe.length);
-    const filmChoisi = maListe[indexHasard];
-    ouvrirModal(filmChoisi.id);
+    if (maListe.length === 0) return;
+    const f = maListe[Math.floor(Math.random() * maListe.length)];
+    ouvrirModal(f.id);
 }
 
-// 11. GESTION DES CLICS EXTÉRIEURS
 document.addEventListener('click', (e) => {
-    const dropdown = document.getElementById('searchResults');
-    // Ferme la recherche si on clique ailleurs
-    if (!e.target.closest('.search-container')) {
-        dropdown.style.display = 'none';
-    }
+    if (!e.target.closest('.search-container')) document.getElementById('searchResults').style.display = 'none';
 });

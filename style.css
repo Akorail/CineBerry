@@ -24,6 +24,12 @@ nav {
     z-index: 1000;
 }
 
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
 .logo {
     color: var(--cramberry);
     font-size: 2rem;
@@ -32,7 +38,22 @@ nav {
     letter-spacing: 2px;
 }
 
-/* Barre de recherche & Auto-complétion */
+.btn-random {
+    background: var(--cramberry);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-random:hover {
+    transform: scale(1.1);
+}
+
+/* Recherche */
 .search-container {
     position: relative;
     width: 350px;
@@ -46,12 +67,6 @@ nav {
     padding: 10px 20px;
     color: white;
     outline: none;
-    transition: 0.3s;
-}
-
-.search-bar:focus {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: var(--cramberry);
 }
 
 .search-results-dropdown {
@@ -66,7 +81,6 @@ nav {
     overflow-y: auto;
     display: none;
     z-index: 2000;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
 }
 
 .result-item {
@@ -85,19 +99,13 @@ nav {
     width: 40px;
     height: 60px;
     object-fit: cover;
-    border-radius: 4px;
     margin-right: 15px;
+    border-radius: 4px;
 }
 
-/* Grille Catalogue */
+/* Grille */
 .catalog-container {
     padding: 30px 50px;
-}
-
-.section-title {
-    font-size: 1.5rem;
-    margin-bottom: 20px;
-    color: #e5e5e5;
 }
 
 .film-grid {
@@ -107,10 +115,10 @@ nav {
 }
 
 .film-card {
-    border-radius: 6px;
+    border-radius: 8px;
     overflow: hidden;
     cursor: pointer;
-    transition: transform 0.3s ease;
+    transition: 0.3s;
 }
 
 .film-card:hover {
@@ -143,14 +151,13 @@ nav {
     width: 90%;
     max-width: 850px;
     background: var(--card-bg);
-    border-radius: 12px;
+    border-radius: 15px;
     z-index: 2000;
     overflow: hidden;
-    box-shadow: 0 0 50px rgba(0, 0, 0, 1);
 }
 
 .modal-banner {
-    height: 450px;
+    height: 400px;
     background-size: cover;
     background-position: center top;
     position: relative;
@@ -167,35 +174,56 @@ nav {
 
 .modal-content-info {
     padding: 0 40px 40px 40px;
-    margin-top: -80px;
+    margin-top: -60px;
     position: relative;
 }
 
 .meta-info {
     color: var(--cramberry);
     font-weight: bold;
-    font-size: 1.1rem;
     margin-bottom: 15px;
 }
 
-#modalDesc {
-    line-height: 1.6;
-    color: #ccc;
-    font-size: 1rem;
+/* Streaming Buttons */
+.streaming-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.stream-link {
+    padding: 8px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+.link-netflix {
+    background: #E50914;
+}
+
+.link-disney {
+    background: #0063e5;
+}
+
+.link-prime {
+    background: #00a8e1;
 }
 
 .close-btn {
     position: absolute;
     top: 20px;
     right: 20px;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.5);
     color: white;
     border: none;
     border-radius: 50%;
     width: 40px;
     height: 40px;
     cursor: pointer;
-    font-size: 20px;
     z-index: 10;
 }
 
@@ -204,13 +232,12 @@ nav {
     color: #555;
     border: 1px solid #333;
     padding: 8px 15px;
-    border-radius: 5px;
     cursor: pointer;
+    border-radius: 5px;
     margin-top: 20px;
 }
 
 .btn-delete:hover {
     background: #b20710;
     color: white;
-    border-color: #b20710;
 }
