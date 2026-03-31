@@ -15,46 +15,55 @@ document.addEventListener('DOMContentLoaded', () => {
 async function ajouterFilm() {
     const input = document.getElementById('filmInput');
     const query = input.value.trim();
-    if (!query) return;
+
+    if (!query) {
+        alert("Le champ est vide !");
+        return;
+    }
+
+    console.log("Recherche lancée pour :", query);
 
     try {
-        const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}&language=fr-FR`);
+        const url = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}&language=fr-FR`;
+        const res = await fetch(url);
+
+        if (!res.ok) {
+            alert("Erreur de connexion à TMDB (Vérifie ta clé API)");
+            return;
+        }
+
         const data = await res.json();
 
         if (data.results && data.results.length > 0) {
             const filmFound = data.results[0];
 
-            // VERIFICATION DOUBLON
-            const existeDeja = maListe.some(f => f.id === filmFound.id);
-            if (existeDeja) {
-                alert("Ce film est déjà dans votre catalogue !");
-                input.value = "";
+            // Verif doublon
+            if (maListe.some(f => f.id === filmFound.id)) {
+                alert("Déjà dans le catalogue !");
                 return;
             }
 
-            // Récupérer détails complets (Durée)
-            const detailRes = await fetch(`https://api.themoviedb.org/3/movie/${filmFound.id}?api_key=${API_KEY}&language=fr-FR`);
-            const movie = await detailRes.json();
-
+            // On simplifie l'objet pour tester si ça s'ajoute
             const nouveau = {
-                id: movie.id,
-                titre: movie.title,
-                desc: movie.overview,
-                duree: movie.runtime,
-                note: movie.vote_average.toFixed(1),
-                // Qualité W500 pour les affiches, Original pour les bannières
-                poster: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
-                banner: `https://image.tmdb.org/t/p/original${movie.backdrop_path}`,
-                estVu: false,
-                videoUrl: ""
+                id: filmFound.id,
+                titre: filmFound.title,
+                desc: filmFound.overview,
+                poster: `https://image.tmdb.org/t/p/w500${filmFound.poster_path}`,
+                banner: `https://image.tmdb.org/t/p/original${filmFound.backdrop_path}`,
+                estVu: false
             };
 
-            maListe.unshift(nouveau); // Ajouter au début du catalogue
+            maListe.unshift(nouveau);
             sauvegarder();
             afficherListe();
             input.value = "";
+            alert("Film ajouté avec succès !");
+        } else {
+            alert("Aucun résultat trouvé sur TMDB.");
         }
-    } catch (err) { console.error(err); }
+    } catch (err) {
+        alert("Erreur critique : " + err.message);
+    }
 }
 
 // 3. Affichage du catalogue
