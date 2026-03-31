@@ -7,26 +7,19 @@
 body {
     background-color: var(--dark-bg);
     color: white;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
     margin: 0;
 }
 
-/* Nav */
 nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 15px 50px;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent);
+    background: rgba(0, 0, 0, 0.8);
     position: sticky;
     top: 0;
     z-index: 1000;
-}
-
-.nav-left {
-    display: flex;
-    align-items: center;
-    gap: 20px;
 }
 
 .logo {
@@ -34,7 +27,6 @@ nav {
     font-size: 2rem;
     font-weight: 900;
     text-decoration: none;
-    letter-spacing: 2px;
 }
 
 .btn-random {
@@ -45,15 +37,8 @@ nav {
     border-radius: 20px;
     cursor: pointer;
     font-weight: bold;
-    transition: 0.3s;
 }
 
-.btn-random:hover {
-    transform: scale(1.1);
-    background: #c0213d;
-}
-
-/* Recherche */
 .search-container {
     position: relative;
     width: 350px;
@@ -61,10 +46,10 @@ nav {
 
 .search-bar {
     width: 100%;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid #333;
+    background: #222;
+    border: 1px solid #444;
     border-radius: 20px;
-    padding: 10px 20px;
+    padding: 10px;
     color: white;
     outline: none;
 }
@@ -75,10 +60,7 @@ nav {
     left: 0;
     right: 0;
     background: #1a1a1a;
-    border: 1px solid #333;
     border-radius: 10px;
-    max-height: 400px;
-    overflow-y: auto;
     display: none;
     z-index: 2000;
 }
@@ -91,19 +73,11 @@ nav {
     border-bottom: 1px solid #222;
 }
 
-.result-item:hover {
-    background: var(--cramberry);
-}
-
 .result-item img {
     width: 40px;
-    height: 60px;
-    object-fit: cover;
-    margin-right: 15px;
-    border-radius: 4px;
+    margin-right: 10px;
 }
 
-/* Grille */
 .catalog-container {
     padding: 30px 50px;
 }
@@ -114,24 +88,17 @@ nav {
     gap: 20px;
 }
 
-.film-card {
+.film-card img {
+    width: 100%;
     border-radius: 8px;
-    overflow: hidden;
     cursor: pointer;
     transition: 0.3s;
 }
 
-.film-card:hover {
+.film-card img:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 15px var(--cramberry);
 }
 
-.film-card img {
-    width: 100%;
-    display: block;
-}
-
-/* Modale */
 .overlay {
     display: none;
     position: fixed;
@@ -150,43 +117,26 @@ nav {
     left: 50%;
     transform: translate(-50%, -50%);
     width: 90%;
-    max-width: 850px;
+    max-width: 800px;
     background: var(--card-bg);
     border-radius: 15px;
     z-index: 2000;
-    overflow-y: auto;
     max-height: 90vh;
+    overflow-y: auto;
 }
 
 .modal-banner {
-    height: 400px;
+    height: 350px;
     background-size: cover;
     background-position: center;
-    position: relative;
-}
-
-.modal-banner::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 100px;
-    background: linear-gradient(to top, var(--card-bg), transparent);
 }
 
 .modal-content-info {
-    padding: 0 40px 40px;
-    margin-top: -50px;
+    padding: 20px 40px;
+    margin-top: -40px;
     position: relative;
 }
 
-.meta-info {
-    color: var(--cramberry);
-    font-weight: bold;
-    margin-bottom: 15px;
-}
-
-/* Admin Panel */
 .admin-panel {
     margin-top: 30px;
     border-top: 1px solid #333;
@@ -204,40 +154,27 @@ nav {
     border-radius: 5px;
 }
 
-.admin-panel button {
-    background: #444;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.close-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    z-index: 100;
-}
-
 .btn-delete {
     background: transparent;
     color: #666;
     border: 1px solid #444;
-    padding: 8px 15px;
+    padding: 10px;
     border-radius: 5px;
     cursor: pointer;
     margin-top: 20px;
 }
 
-.btn-delete:hover {
-    background: #b20710;
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.5);
     color: white;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    z-index: 2100;
 }
