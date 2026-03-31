@@ -14,49 +14,48 @@ const API_KEY = '9fa60350cd740b9049ebef19f4e22487';
 let maListe = [];
 let filmActuelId = null;
 
-// SYNC AVEC LE CLOUD
 database.ref('films').on('value', (snapshot) => {
     const data = snapshot.val();
     maListe = data ? Object.values(data) : [];
     afficherListe();
 });
 
-// RECHERCHE
+// RECHERCHE TMDB
 async function rechercherEnDirect() {
     const query = document.getElementById('filmInput').value.trim();
     const dropdown = document.getElementById('searchResults');
     if (query.length < 2) { dropdown.style.display = 'none'; return; }
     try {
-        const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}&language=fr-FR`);
+        const res = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(query)}&language=fr-FR`);
         const data = await res.json();
         dropdown.innerHTML = "";
         dropdown.style.display = 'block';
-        data.results.slice(0, 8).forEach(film => {
+        data.results.slice(0, 8).forEach(m => {
             const item = document.createElement('div');
             item.className = "result-item";
-            const img = film.poster_path ? `https://image.tmdb.org/t/p/w92${film.poster_path}` : 'https://via.placeholder.com/40x60';
-            item.innerHTML = `<img src="${img}"><div><b>${film.title}</b></div>`;
-            item.onclick = () => selectionnerFilm(film.id);
+            const titre = m.title || m.name;
+            const img = m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : 'https://via.placeholder.com/40x60';
+            item.innerHTML = `<img src="${img}"><div><b>${titre}</b></div>`;
+            item.onclick = () => selectionnerFilm(m.id, m.media_type);
             dropdown.appendChild(item);
         });
     } catch (e) { console.error(e); }
 }
 
-// AJOUT DANS LE CLOUD
-async function selectionnerFilm(id) {
+async function selectionnerFilm(id, type) {
     document.getElementById('searchResults').style.display = 'none';
-    if (maListe.some(f => f.id === id)) return alert("Déjà présent !");
+    if (maListe.some(f => f.id === id)) return;
     try {
-        const res = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}&language=fr-FR`);
+        const res = await fetch(`https://api.themoviedb.org/3/${type}/${id}?api_key=${API_KEY}&language=fr-FR`);
         const m = await res.json();
         const nouveau = {
-            id: m.id, titre: m.title, desc: m.overview, note: m.vote_average.toFixed(1),
+            id: m.id, titre: m.title || m.name, desc: m.overview,
             poster: `https://image.tmdb.org/t/p/w500${m.poster_path}`,
             banner: `https://image.tmdb.org/t/p/original${m.backdrop_path}`,
-            videoUrl: "" // Vide au début
+            videoUrl: "" 
         };
         maListe.unshift(nouveau);
-        sauvegarder();
+        database.ref('films').set(maListe);
     } catch (e) { console.error(e); }
 }
 
@@ -75,27 +74,47 @@ function ouvrirModal(id) {
     const m = maListe.find(f => f.id === id);
     if (!m) return;
     filmActuelId = id;
-    
     document.getElementById('modalBanner').style.backgroundImage = `url(${m.banner})`;
     document.getElementById('modalTitle').innerText = m.titre;
     document.getElementById('modalDesc').innerText = m.desc || "Pas de synopsis.";
+    document.getElementById('videoContainer').style.display = "none";
     
     const playSection = document.getElementById('playSection');
-    const videoContainer = document.getElementById('videoContainer');
-    videoContainer.style.display = "none";
-    
-    // Si le film a déjà un lien en dur dans Firebase
-    if (m.videoUrl && m.videoUrl !== "") {
-        playSection.innerHTML = `<button onclick="lancerVideo('${m.videoUrl}')" class="btn-play">▶ REPRENDRE LA LECTURE</button>`;
-        // On cache le champ de configuration pour que ce soit propre
+    if (m.videoUrl) {
+        playSection.innerHTML = `<button onclick="lancerVideo('${m.videoUrl}')" class="btn-play">▶ LECTURE</button>`;
         document.getElementById('adminPanel').style.display = "none";
     } else {
-        playSection.innerHTML = `<p style="text-align:center; color:#666;"><i>Film non configuré. Collez un lien Drive en bas.</i></p>`;
+        playSection.innerHTML = `<p style="text-align:center; color:#666;">Vidéo non liée.</p>`;
         document.getElementById('adminPanel').style.display = "block";
     }
-
     document.getElementById('movieModal').style.display = 'block';
     document.getElementById('modalOverlay').style.display = 'block';
+}
+
+// --- LA MAGIE EST ICI ---
+function enregistrerLienAutomatique() {
+    const rawUrl = document.getElementById('urlInput').value.trim();
+    if (!rawUrl) return;
+
+    // On extrait l'ID du lien Google Drive automatiquement
+    const match = rawUrl.match(/\/d\/(.+?)\/(view|edit|copy)/) || rawUrl.match(/id=(.+?)(&|$)/);
+    const driveId = match ? match[1] : null;
+
+    if (!driveId) {
+        alert("Lien Google Drive non reconnu. Vérifiez le format !");
+        return;
+    }
+
+    // On crée le lien de streaming direct
+    const finalUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
+    
+    const idx = maListe.findIndex(f => f.id === filmActuelId);
+    if (idx !== -1) {
+        maListe[idx].videoUrl = finalUrl;
+        database.ref('films').set(maListe);
+        alert("Lien converti et enregistré !");
+        ouvrirModal(filmActuelId);
+    }
 }
 
 function lancerVideo(url) {
@@ -106,21 +125,6 @@ function lancerVideo(url) {
     player.play();
 }
 
-// CETTE FONCTION SAUVEGARDE LE LIEN "EN DUR" DANS FIREBASE
-function enregistrerLienVideo() {
-    const url = document.getElementById('urlInput').value.trim();
-    if (!url) return;
-    const idx = maListe.findIndex(f => f.id === filmActuelId);
-    if (idx !== -1) {
-        maListe[idx].videoUrl = url;
-        sauvegarder();
-        alert("Lien enregistré définitivement dans le Cloud !");
-        ouvrirModal(filmActuelId); // Rafraîchit la modale
-    }
-}
-
-function sauvegarder() { database.ref('films').set(maListe); }
-
 function fermerModal() {
     document.getElementById('movieModal').style.display = 'none';
     document.getElementById('modalOverlay').style.display = 'none';
@@ -130,7 +134,7 @@ function fermerModal() {
 function supprimerFilm(id) {
     if (confirm("Supprimer ?")) {
         maListe = maListe.filter(f => f.id !== id);
-        sauvegarder();
+        database.ref('films').set(maListe);
         fermerModal();
     }
 }
