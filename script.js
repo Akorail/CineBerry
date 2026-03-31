@@ -1,30 +1,50 @@
-const API_KEY = '9fa60350cd740b9049ebef19f4e22487'; // <-- Colle ta clé TMDB ici
+const API_KEY = '9fa60350cd740b9049ebef19f4e22487';
 let maListe = JSON.parse(localStorage.getItem('maListe')) || [];
 
+// --- NAVIGATION ---
+function changerOnglet(nom) {
+    // Masquer toutes les sections
+    document.querySelectorAll('.onglet-content').forEach(sec => sec.style.display = 'none');
+    // Enlever la classe active des liens
+    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+
+    // Afficher la section demandée
+    document.getElementById('page-' + nom).style.display = 'block';
+    document.getElementById('btn-' + nom).classList.add('active');
+
+    // Cacher la barre de recherche si on est sur la roulette
+    document.getElementById('zone-recherche').style.display = (nom === 'aleatoire') ? 'none' : 'flex';
+
+    afficherListe();
+}
+
+// --- LOGIQUE API & AJOUT ---
 async function ajouterFilm() {
     const input = document.getElementById('filmInput');
-    const titreRecherche = input.value;
-    if (!titreRecherche) return;
+    const titre = input.value;
+    if (!titre) return;
 
     try {
-        // 1. On cherche le film sur TMDB
-        const response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(titreRecherche)}&language=fr-FR`);
-        const data = await response.json();
+        const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(titre)}&language=fr-FR`);
+        const data = await res.json();
 
         if (data.results && data.results.length > 0) {
-            const premierResultat = data.results[0];
+            const basicInfo = data.results[0];
 
-            // 2. On récupère les détails (car la recherche de base ne donne pas la durée !)
-            const detailRes = await fetch(`https://api.themoviedb.org/3/movie/${premierResultat.id}?api_key=${API_KEY}&language=fr-FR`);
+            // On cherche les détails pour avoir la durée exacte (runtime)
+            const detailRes = await fetch(`https://api.themoviedb.org/3/movie/${basicInfo.id}?api_key=${API_KEY}&language=fr-FR`);
             const movie = await detailRes.json();
 
-            // 3. On crée l'objet avec les vraies infos
             const nouveauMedia = {
                 id: movie.id,
                 titre: movie.title,
-                duree: movie.runtime || 0, // En minutes
-                image: `https://image.tmdb.org/t/p/w92${movie.poster_path}`,
-                estVu: false
+                desc: movie.overview,
+                duree: movie.runtime,
+                note: movie.vote_average.toFixed(1),
+                image: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+                banner: `https://image.tmdb.org/t/p/original${movie.backdrop_path}`,
+                estVu: false,
+                videoUrl: "" // Chemin vers ton .mp4 (ex: "films/nom.mp4")
             };
 
             maListe.push(nouveauMedia);
@@ -32,47 +52,100 @@ async function ajouterFilm() {
             afficherListe();
             input.value = "";
         } else {
-            alert("Film non trouvé !");
+            alert("Film introuvable !");
         }
-    } catch (error) {
-        console.error("Erreur API:", error);
+    } catch (err) {
+        console.error("Erreur API:", err);
     }
 }
 
+// --- AFFICHAGE ---
 function afficherListe() {
-    const conteneur = document.getElementById('listeMedias');
-    conteneur.innerHTML = "";
+    const gridAVoir = document.getElementById('liste-a-voir');
+    const gridVu = document.getElementById('liste-deja-vu');
 
-    maListe.forEach(media => {
-        const div = document.createElement('div');
-        div.className = `card p-2 d-flex flex-row align-items-center mb-2 ${media.estVu ? 'vu' : ''}`;
-        div.innerHTML = `
-            <img src="${media.image}" class="rounded me-3" style="width: 50px;">
-            <div class="flex-grow-1">
-                <h6 class="mb-0">${media.titre}</h6>
-                <small class="text-muted">${media.duree} min</small>
-            </div>
-            <div>
-                <button class="btn btn-sm ${media.estVu ? 'btn-success' : 'btn-outline-success'}" onclick="toggleVu(${media.id})">✅</button>
-                <button class="btn btn-sm btn-outline-danger" onclick="supprimer(${media.id})">🗑️</button>
-            </div>
-        `;
-        conteneur.append(div);
+    gridAVoir.innerHTML = "";
+    gridVu.innerHTML = "";
+
+    maListe.forEach(m => {
+        const card = document.createElement('div');
+        card.className = "film-card";
+        card.onclick = () => ouvrirInfos(m.id);
+        card.innerHTML = `<img src="${m.image}" alt="${m.titre}">`;
+
+        if (m.estVu) gridVu.appendChild(card);
+        else gridAVoir.appendChild(card);
     });
 }
 
-// Les fonctions sauvegarder, toggleVu et supprimer restent les mêmes
-function sauvegarder() { localStorage.setItem('maListe', JSON.stringify(maListe)); }
-function toggleVu(id) {
-    const media = maListe.find(m => m.id === id);
-    media.estVu = !media.estVu;
-    sauvegarder();
-    afficherListe();
+// --- MODAL ET DÉTAILS ---
+function ouvrirInfos(id) {
+    const m = maListe.find(f => f.id === id);
+    if (!m) return;
+
+    document.getElementById('modalTitre').innerText = m.titre;
+    document.getElementById('modalDesc').innerText = m.desc || "Aucune description disponible.";
+    document.getElementById('modalDuree').innerText = `${m.duree} min`;
+    document.getElementById('modalNote').innerText = `⭐ ${m.note}/10`;
+    document.getElementById('modalImage').style.backgroundImage = `url(${m.banner})`;
+
+    // Gestion du bouton de statut (Vu/À voir)
+    const btnAction = document.getElementById('btnActionStatut');
+    btnAction.innerText = m.estVu ? "Remettre à voir" : "Marquer comme terminé";
+    btnAction.onclick = () => { toggleVu(m.id); fermerModal(); };
+
+    // Gestion Vidéo MP4
+    const videoDiv = document.getElementById('videoContainer');
+    if (m.videoUrl) {
+        videoDiv.innerHTML = `
+            <h6 class="text-white mb-2">Lecteur Vidéo :</h6>
+            <video width="100%" controls class="rounded border border-secondary">
+                <source src="${m.videoUrl}" type="video/mp4">
+                Votre navigateur ne supporte pas la lecture de vidéos.
+            </video>`;
+    } else {
+        videoDiv.innerHTML = `<div class="alert alert-dark small">🎥 Aucun fichier MP4 lié.</div>`;
+    }
+
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('modalFilm').style.display = 'block';
 }
-function supprimer(id) {
-    maListe = maListe.filter(m => m.id !== id);
+
+function fermerModal() {
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('modalFilm').style.display = 'none';
+    document.getElementById('videoContainer').innerHTML = ""; // Coupe le son de la vidéo
+}
+
+// --- ACTIONS ---
+function toggleVu(id) {
+    const idx = maListe.findIndex(m => m.id === id);
+    maListe[idx].estVu = !maListe[idx].estVu;
     sauvegarder();
     afficherListe();
 }
 
+function choisirAleatoire() {
+    const aVoir = maListe.filter(m => !m.estVu);
+    const resDiv = document.getElementById('resultat-aleatoire');
+
+    if (aVoir.length === 0) {
+        resDiv.innerHTML = "<p>Aucun film disponible dans votre liste 'À voir'.</p>";
+        return;
+    }
+
+    const hasard = aVoir[Math.floor(Math.random() * aVoir.length)];
+    resDiv.innerHTML = `
+        <div class="film-card mx-auto" style="width: 200px;" onclick="ouvrirInfos(${hasard.id})">
+            <img src="${hasard.image}">
+            <h5 class="mt-2 text-white">${hasard.titre}</h5>
+        </div>
+    `;
+}
+
+function sauvegarder() {
+    localStorage.setItem('maListe', JSON.stringify(maListe));
+}
+
+// Lancement initial
 afficherListe();

@@ -3,24 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Marathon Ciné 🍿</title>
+    <title>Monflix - Mon Marathon Ciné</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="style.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="container py-4">
-    <h1 class="text-center mb-4">🎬 Marathon Manager</h1>
+<body>
 
-    <div class="input-group mb-3">
-        <input type="text" id="filmInput" class="form-control" placeholder="Nom du film...">
-        <button class="btn btn-primary" onclick="ajouterFilm()">Ajouter</button>
+    <nav class="navbar navbar-expand-lg navbar-dark px-4">
+        <a class="navbar-brand" href="#" onclick="changerOnglet('accueil')">MONFLIX</a>
+        <div class="navbar-nav">
+            <a class="nav-link active" id="btn-accueil" href="#" onclick="changerOnglet('accueil')">Accueil</a>
+            <a class="nav-link" id="btn-deja-vu" href="#" onclick="changerOnglet('deja-vu')">Déjà vu</a>
+            <a class="nav-link" id="btn-aleatoire" href="#" onclick="changerOnglet('aleatoire')">Roulette 🎲</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div id="zone-recherche" class="input-group mb-5">
+            <input type="text" id="filmInput" class="form-control bg-dark text-white border-secondary" placeholder="Rechercher un film à ajouter...">
+            <button class="btn btn-danger" onclick="ajouterFilm()">Ajouter à ma liste</button>
+        </div>
+
+        <section id="page-accueil" class="onglet-content">
+            <h2 class="mb-4">Ma Liste à voir</h2>
+            <div id="liste-a-voir" class="film-grid">
+                </div>
+        </section>
+
+        <section id="page-deja-vu" class="onglet-content" style="display:none;">
+            <h2 class="mb-4">Films terminés</h2>
+            <div id="liste-deja-vu" class="film-grid"></div>
+        </section>
+
+        <section id="page-aleatoire" class="onglet-content text-center" style="display:none;">
+            <h2 class="mb-5">Besoin d'une idée ?</h2>
+            <div id="resultat-aleatoire" class="mb-4">
+                </div>
+            <button class="btn btn-lg btn-danger px-5 shadow" onclick="choisirAleatoire()">LANCER LA ROULETTE</button>
+        </section>
     </div>
 
-    <div class="d-flex gap-2 mb-4">
-        <button class="btn btn-warning w-100" onclick="choisirAleatoire()">🎲 Aléatoire</button>
-        <button class="btn btn-success w-100" onclick="calculerMarathon()">🕒 Marathon</button>
-    </div>
+    <div class="overlay" id="overlay" onclick="fermerModal()"></div>
+    <div id="modalFilm" class="modal-netflix">
+        <div class="modal-header-img" id="modalImage"></div>
+        <div class="p-4">
+            <h2 id="modalTitre">Titre du Film</h2>
+            <div class="d-flex gap-3 mb-3">
+                <span id="modalDuree" class="badge bg-secondary">0 min</span>
+                <span id="modalNote" class="text-warning font-weight-bold">⭐ 0/10</span>
+            </div>
+            <p id="modalDesc" class="text-muted small">Description du film...</p>
+            
+            <div id="videoContainer" class="mt-4">
+                </div>
 
-    <div id="listeMedias"></div>
+            <div class="mt-4 d-flex justify-content-between">
+                <button id="btnActionStatut" class="btn btn-light">Marquer comme vu</button>
+                <button class="btn btn-outline-danger" onclick="fermerModal()">Fermer</button>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
