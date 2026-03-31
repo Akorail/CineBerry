@@ -133,22 +133,23 @@ function lancerVideoFullscreen(url) {
     const videoFullscreen = document.getElementById('videoFullscreen');
     const container = document.getElementById('videoContainer');
     
-    // On force le lien en mode "Téléchargement Direct" (Le mode brut)
-    let directUrl = url;
+    let finalUrl = url;
+
+    // Auto-correction pour Dropbox
+    if (url.includes('dropbox.com')) {
+        finalUrl = url.replace('dl=0', 'raw=1');
+    }
+    
+    // Auto-correction pour Google Drive (Mode direct)
     if (url.includes('file/d/')) {
         const id = url.match(/\/d\/(.+?)\//)[1];
-        directUrl = `https://drive.google.com/uc?export=download&id=${id}`;
-    } else if (url.includes('uc?id=')) {
-        directUrl = url.replace('uc?id=', 'uc?export=download&id=');
+        finalUrl = `https://drive.google.com/uc?export=download&id=${id}`;
     }
 
-    // IMPORTANT : On utilise le lecteur HTML5 natif pour la qualité 1080p
     container.innerHTML = `
         <video id="rawPlayer" controls autoplay style="width:100%; height:100%; background:#000;">
-            <source src="${directUrl}" type="video/mp4">
-            <p>Votre navigateur ne supporte pas la lecture directe. 
-               <a href="${directUrl}" style="color:white;">Cliquez ici pour télécharger le film.</a>
-            </p>
+            <source src="${finalUrl}" type="video/mp4">
+            Votre navigateur ne supporte pas la lecture directe.
         </video>`;
     
     toggleElement('videoFullscreen', true);
