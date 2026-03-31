@@ -106,8 +106,8 @@ function enregistrerLienAutomatique() {
     }
 
     // On crée le lien de streaming direct
-    const finalUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
-    
+const finalUrl = `https://drive.google.com/uc?id=${driveId}&export=open`;  
+  
     const idx = maListe.findIndex(f => f.id === filmActuelId);
     if (idx !== -1) {
         maListe[idx].videoUrl = finalUrl;
