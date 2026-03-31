@@ -31,35 +31,26 @@
 
     <div id="movieModal" class="modal-cramberry">
         <button class="close-btn" onclick="fermerModal()">✕</button>
-        <div id="modalBanner" class="modal-banner"></div>
+
+        <div id="mediaHeader" class="modal-header-media">
+            <div id="modalBanner" class="modal-banner"></div>
+            <div id="videoContainer" class="video-container" style="display:none;"></div>
+        </div>
 
         <div class="modal-content-info">
-            <h1 id="modalTitle"></h1>
-            <p id="modalInfo" class="meta-info"></p>
-
-            <div id="playSection" style="margin-bottom: 25px;"></div>
-
-            <p id="modalDesc"></p>
-
-            <div id="videoContainer" style="display:none; margin-top:20px;">
-                <video id="mainPlayer" width="100%" controls
-                    style="border-radius: 8px; border: 1px solid var(--cramberry);">
-                    <source src="" type="video/mp4">
-                </video>
+            <div class="main-details">
+                <h1 id="modalTitle"></h1>
+                <div id="playSection"></div>
+                <p id="modalDesc"></p>
             </div>
 
             <div id="adminPanel" class="admin-panel">
-                <p style="font-size: 0.8rem; color: #888;">Collez simplement le lien de partage Google Drive :</p>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="urlInput" placeholder="https://drive.google.com/file/d/..."
-                        style="flex:1; padding: 10px; border-radius: 5px; border: 1px solid #444; background: #000; color: white;">
-                    <button onclick="enregistrerLienAutomatique()"
-                        style="background: var(--cramberry); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Lier</button>
-                </div>
+                <input type="text" id="urlInput" placeholder="Lien de partage Google Drive...">
+                <button onclick="enregistrerLienAutomatique()">Lier le film</button>
             </div>
 
             <div class="modal-footer">
-                <button id="btnDelete" class="btn-delete">Supprimer 🗑️</button>
+                <button id="btnDelete" class="btn-delete">Supprimer du catalogue</button>
             </div>
         </div>
     </div>

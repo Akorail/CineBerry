@@ -70,60 +70,68 @@ function afficherListe() {
     });
 }
 
+
 function ouvrirModal(id) {
     const m = maListe.find(f => f.id === id);
     if (!m) return;
     filmActuelId = id;
+    
     document.getElementById('modalBanner').style.backgroundImage = `url(${m.banner})`;
+    document.getElementById('modalBanner').style.display = "block";
+    document.getElementById('videoContainer').style.display = "none";
+    document.getElementById('videoContainer').innerHTML = ""; // Reset video
+    
     document.getElementById('modalTitle').innerText = m.titre;
     document.getElementById('modalDesc').innerText = m.desc || "Pas de synopsis.";
-    document.getElementById('videoContainer').style.display = "none";
     
     const playSection = document.getElementById('playSection');
     if (m.videoUrl) {
-        playSection.innerHTML = `<button onclick="lancerVideo('${m.videoUrl}')" class="btn-play">▶ LECTURE</button>`;
+        playSection.innerHTML = `<button onclick="lancerVideo('${m.videoUrl}')" class="btn-play"><span>▶</span> Lecture</button>`;
         document.getElementById('adminPanel').style.display = "none";
     } else {
-        playSection.innerHTML = `<p style="text-align:center; color:#666;">Vidéo non liée.</p>`;
-        document.getElementById('adminPanel').style.display = "block";
+        playSection.innerHTML = "";
+        document.getElementById('adminPanel').style.display = "flex";
     }
+
+    document.getElementById('btnDelete').onclick = () => supprimerFilm(m.id);
     document.getElementById('movieModal').style.display = 'block';
     document.getElementById('modalOverlay').style.display = 'block';
 }
 
-// --- LA MAGIE EST ICI ---
+function lancerVideo(url) {
+    const container = document.getElementById('videoContainer');
+    const banner = document.getElementById('modalBanner');
+    
+    // TRANSFORMATION DU LIEN DRIVE POUR IFRAME
+    // On passe de : ...uc?export=download&id=XYZ
+    // À : ...file/d/XYZ/preview
+    let embedUrl = url.replace('uc?export=download&id=', 'file/d/').replace('uc?id=', 'file/d/') + '/preview';
+    embedUrl = embedUrl.replace('&export=open', '');
+
+    banner.style.display = "none";
+    container.style.display = "block";
+    container.innerHTML = `<iframe src="${embedUrl}" allow="autoplay" allowfullscreen></iframe>`;
+}
+
 function enregistrerLienAutomatique() {
     const rawUrl = document.getElementById('urlInput').value.trim();
     if (!rawUrl) return;
 
-    // On extrait l'ID du lien Google Drive automatiquement
-    const match = rawUrl.match(/\/d\/(.+?)\/(view|edit|copy)/) || rawUrl.match(/id=(.+?)(&|$)/);
+    const match = rawUrl.match(/\/d\/(.+?)\//) || rawUrl.match(/id=(.+?)(&|$)/);
     const driveId = match ? match[1] : null;
 
-    if (!driveId) {
-        alert("Lien Google Drive non reconnu. Vérifiez le format !");
-        return;
-    }
+    if (!driveId) return alert("Lien Drive invalide");
 
-    // On crée le lien de streaming direct
-const finalUrl = `https://drive.google.com/uc?id=${driveId}&export=open`;  
-  
+    const finalUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
+    
     const idx = maListe.findIndex(f => f.id === filmActuelId);
     if (idx !== -1) {
         maListe[idx].videoUrl = finalUrl;
         database.ref('films').set(maListe);
-        alert("Lien converti et enregistré !");
         ouvrirModal(filmActuelId);
     }
 }
 
-function lancerVideo(url) {
-    const container = document.getElementById('videoContainer');
-    const player = document.getElementById('mainPlayer');
-    player.src = url;
-    container.style.display = "block";
-    player.play();
-}
 
 function fermerModal() {
     document.getElementById('movieModal').style.display = 'none';
