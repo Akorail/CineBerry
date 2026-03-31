@@ -133,28 +133,27 @@ function lancerVideoFullscreen(url) {
     const videoFullscreen = document.getElementById('videoFullscreen');
     const container = document.getElementById('videoContainer');
     
-    // On s'assure d'avoir le lien de téléchargement direct pour le flux brut
+    // On force le lien en mode "Téléchargement Direct" (Le mode brut)
     let directUrl = url;
     if (url.includes('file/d/')) {
         const id = url.match(/\/d\/(.+?)\//)[1];
         directUrl = `https://drive.google.com/uc?export=download&id=${id}`;
+    } else if (url.includes('uc?id=')) {
+        directUrl = url.replace('uc?id=', 'uc?export=download&id=');
     }
 
-    // On injecte le lecteur HTML5 natif (Qualité Originale)
+    // IMPORTANT : On utilise le lecteur HTML5 natif pour la qualité 1080p
     container.innerHTML = `
-        <video id="rawPlayer" controls autoplay style="width:100%; height:100%; outline:none;">
+        <video id="rawPlayer" controls autoplay style="width:100%; height:100%; background:#000;">
             <source src="${directUrl}" type="video/mp4">
-            Votre navigateur ne supporte pas le lecteur brut.
+            <p>Votre navigateur ne supporte pas la lecture directe. 
+               <a href="${directUrl}" style="color:white;">Cliquez ici pour télécharger le film.</a>
+            </p>
         </video>`;
     
     toggleElement('videoFullscreen', true);
     fermerModal();
-
-    // Petit script pour mettre en plein écran automatiquement
-    const player = document.getElementById('rawPlayer');
-    player.play().catch(() => console.log("L'autostart a été bloqué par le navigateur, cliquez sur Play."));
 }
-
 function fermerVideo() {
     const container = document.getElementById('videoContainer');
     container.innerHTML = ""; // Coupe le flux
@@ -175,8 +174,8 @@ function enregistrerLienAutomatique() {
         return;
     }
 
-    const finalUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
-    
+const finalUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
+
     const idx = maListe.findIndex(f => f.id === filmActuelId);
     if (idx !== -1) {
         maListe[idx].videoUrl = finalUrl;
