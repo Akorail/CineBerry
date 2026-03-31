@@ -4,7 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monflix - Cineberry</title>
+    <title>Cineberry - Votre Vidéothèque Privée</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@300;400;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -12,47 +15,56 @@
 
     <nav>
         <div class="nav-left">
-            <a href="#" class="logo">MONFLIX</a>
-            <button onclick="choisirFilmAleatoire()" class="btn-random">🎲 Hasard</button>
+            <a href="#" class="logo">CINEBERRY</a>
         </div>
-        <div class="search-container">
-            <input type="text" id="filmInput" class="search-bar" placeholder="Ajouter un film ou une série..."
-                oninput="rechercherEnDirect()">
-            <div id="searchResults" class="search-results-dropdown"></div>
+        <div class="nav-right">
+            <div class="search-container">
+                <input type="text" id="filmInput" class="search-bar" placeholder="Rechercher..."
+                    oninput="rechercherEnDirect()">
+                <div id="searchResults" class="search-results-dropdown"></div>
+            </div>
+            <button onclick="choisirFilmAleatoire()" class="btn-icon">🎲</button>
         </div>
     </nav>
 
     <main class="catalog-container">
-        <h2 class="section-title">Ma Vidéothèque</h2>
         <div id="catalogGrid" class="film-grid"></div>
     </main>
 
     <div id="modalOverlay" class="overlay" onclick="fermerModal()"></div>
 
-    <div id="movieModal" class="modal-cramberry">
-        <button class="close-btn" onclick="fermerModal()">✕</button>
+    <div id="movieModal" class="modal-fine">
+        <button class="close-btn-thin" onclick="fermerModal()">✕</button>
 
-        <div id="mediaHeader" class="modal-header-media">
-            <div id="modalBanner" class="modal-banner"></div>
-            <div id="videoContainer" class="video-container" style="display:none;"></div>
-        </div>
+        <div class="modal-layout">
+            <div id="modalPosterContainer" class="modal-poster-side">
+                <img id="modalPoster" src="" alt="Poster">
+            </div>
 
-        <div class="modal-content-info">
-            <div class="main-details">
+            <div class="modal-info-side">
                 <h1 id="modalTitle"></h1>
-                <div id="playSection"></div>
+                <p id="modalMeta" class="meta-thin"></p>
+
+                <div id="playSection" class="play-section-thin">
+                </div>
+
                 <p id="modalDesc"></p>
-            </div>
 
-            <div id="adminPanel" class="admin-panel">
-                <input type="text" id="urlInput" placeholder="Lien de partage Google Drive...">
-                <button onclick="enregistrerLienAutomatique()">Lier le film</button>
-            </div>
+                <div id="adminPanel" class="admin-panel-thin">
+                    <input type="text" id="urlInput" placeholder="Lien Drive...">
+                    <button onclick="enregistrerLienAutomatique()">Lier</button>
+                </div>
 
-            <div class="modal-footer">
-                <button id="btnDelete" class="btn-delete">Supprimer du catalogue</button>
+                <div class="modal-footer-thin">
+                    <button id="btnDelete" class="btn-delete-thin">Retirer</button>
+                </div>
             </div>
         </div>
+    </div>
+
+    <div id="videoFullscreen" class="video-fullscreen-overlay">
+        <button class="close-video-btn" onclick="fermerVideo()">✕ Fermer</button>
+        <div id="videoContainer" class="video-player-container"></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>

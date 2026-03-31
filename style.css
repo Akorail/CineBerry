@@ -1,64 +1,167 @@
 :root {
-    --cramberry: #e50914; /* Rouge Netflix pour plus de punch */
-    --dark-bg: #141414;
-    --card-bg: #181818;
+    --bg-color: #050505; /* Noir très profond */
+    --accent-color: #ffffff;
+    --text-color: #e0e0e0;
+    --subtle-color: #888888;
+    --card-bg: #111111;
+    --font-heading: 'Cormorant Garamond', serif;
+    --font-body: 'Montserrat', sans-serif;
 }
 
-body { background-color: var(--dark-bg); color: white; font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; overflow-x: hidden; }
-
-/* Navigation */
-nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 4%; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); position: fixed; width: 92%; top: 0; z-index: 1000; transition: 0.3s; }
-.logo { color: var(--cramberry); font-size: 1.8rem; font-weight: bold; text-decoration: none; letter-spacing: 1px; }
-
-/* Grille des films - Disposition améliorée */
-.catalog-container { padding: 100px 4% 40px; }
-.section-title { font-size: 1.5rem; margin-bottom: 20px; color: #e5e5e5; }
-.film-grid { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
-    gap: 15px; 
-}
-.film-card img { 
-    width: 100%; 
-    border-radius: 4px; 
-    cursor: pointer; 
-    transition: transform 0.3s ease;
-}
-.film-card img:hover { transform: scale(1.08); z-index: 2; }
-
-/* Modale Netflix Style */
-.overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1500; backdrop-filter: blur(5px); }
-.modal-cramberry { 
-    display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-    width: 90%; max-width: 850px; background: #181818; border-radius: 10px; z-index: 2000; 
-    overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.5);
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-body);
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
 }
 
-.modal-header-media { width: 100%; position: relative; background: #000; min-height: 300px; }
-.modal-banner { height: 450px; background-size: cover; background-position: top; }
-.video-container { height: 450px; width: 100%; }
-.video-container iframe { width: 100%; height: 100%; border: none; }
-
-.modal-content-info { padding: 30px; }
-#modalTitle { font-size: 2.5rem; margin: 0 0 20px; }
-#modalDesc { font-size: 1.1rem; line-height: 1.6; color: #d2d2d2; max-width: 80%; }
-
-/* Bouton Lecture */
-.btn-play { 
-    background: white; color: black; border: none; padding: 12px 30px; 
-    border-radius: 4px; font-size: 1.1rem; font-weight: bold; cursor: pointer; 
-    display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
-    transition: 0.2s;
+/* Navigation Fine */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 5%;
+    background: rgba(5, 5, 5, 0.9);
+    position: fixed;
+    width: 90%;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid #1a1a1a;
 }
-.btn-play:hover { background: #e6e6e6; transform: scale(1.05); }
-
-/* Admin & Delete */
-.admin-panel { margin-top: 40px; padding-top: 20px; border-top: 1px solid #333; display: flex; gap: 10px; }
-.admin-panel input { flex: 1; background: #222; border: 1px solid #444; color: white; padding: 10px; border-radius: 4px; }
-.btn-delete { background: none; color: #555; border: none; cursor: pointer; text-decoration: underline; font-size: 0.9rem; }
-.btn-delete:hover { color: var(--cramberry); }
-
-.close-btn { 
-    position: absolute; top: 20px; right: 20px; background: #181818; color: white; 
-    border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; z-index: 2100;
+.nav-right { display: flex; align-items: center; gap: 15px; }
+.logo {
+    color: var(--accent-color);
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: 2px;
 }
+.btn-icon { background: none; border: none; color: var(--subtle-color); font-size: 1.2rem; cursor: pointer; }
+
+/* Recherche Minimaliste */
+.search-bar {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #333;
+    padding: 10px;
+    color: white;
+    font-family: var(--font-body);
+    width: 200px;
+    transition: width 0.3s;
+}
+.search-bar:focus { width: 300px; outline: none; border-color: var(--accent-color); }
+
+/* Grille Fine */
+.catalog-container { padding: 120px 5% 40px; }
+.film-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px;
+}
+.film-card img {
+    width: 100%;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+.film-card img:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
+}
+
+/* Modale Fine et Élégante */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 1500;
+    backdrop-filter: blur(10px);
+    opacity: 0; transition: opacity 0.4s;
+}
+.overlay.show { opacity: 1; display: block; }
+
+.modal-fine {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    width: 90%; max-width: 900px;
+    background: var(--card-bg);
+    border-radius: 4px;
+    z-index: 2000;
+    overflow: hidden;
+    opacity: 0;
+    transition: transform 0.4s, opacity 0.4s;
+    border: 1px solid #222;
+}
+.modal-fine.show { opacity: 1; transform: translate(-50%, -50%) scale(1); display: block; }
+
+.modal-layout { display: flex; }
+.modal-poster-side { width: 35%; flex-shrink: 0; border-right: 1px solid #222; }
+.modal-poster-side img { width: 100%; height: 100%; object-fit: cover; }
+.modal-info-side { width: 65%; padding: 40px; overflow-y: auto; max-height: 80vh; }
+
+#modalTitle {
+    font-family: var(--font-heading);
+    font-size: 3rem;
+    margin: 0 0 10px;
+    font-weight: 600;
+    line-height: 1.1;
+}
+.meta-thin { color: var(--subtle-color); font-size: 0.9rem; font-weight: 300; margin-bottom: 30px; }
+#modalDesc { font-size: 1rem; line-height: 1.8; font-weight: 300; color: #ccc; margin-bottom: 40px; }
+
+/* Bouton Lecture Élégant */
+.btn-play-thin {
+    background: transparent;
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color);
+    padding: 15px 40px;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-bottom: 30px;
+}
+.btn-play-thin:hover { background: var(--accent-color); color: var(--bg-color); }
+
+/* Lecteur Vidéo Plein Écran */
+.video-fullscreen-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #000;
+    z-index: 3000;
+    opacity: 0; transition: opacity 0.5s;
+}
+.video-fullscreen-overlay.show { opacity: 1; display: block; }
+
+.video-player-container {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+}
+.video-player-container iframe {
+    width: 100%; height: 100%;
+    border: none;
+}
+
+.close-video-btn {
+    position: absolute; top: 30px; right: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white; border: none;
+    padding: 10px 20px; cursor: pointer;
+    z-index: 3100; font-family: var(--font-body);
+    text-transform: uppercase; letter-spacing: 1px;
+}
+
+/* Autres éléments fins */
+.admin-panel-thin { margin-top: 30px; display: flex; gap: 10px; opacity: 0.5; }
+.admin-panel-thin input { flex: 1; background: transparent; border: 1px solid #333; color: white; padding: 8px; }
+.close-btn-thin { position: absolute; top: 20px; right: 20px; background: none; color: #444; border: none; font-size: 1.2rem; cursor: pointer; z-index: 2100; }
+.btn-delete-thin { background: none; color: #333; border: none; cursor: pointer; font-size: 0.8rem; text-decoration: underline; }

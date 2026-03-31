@@ -1,3 +1,4 @@
+// --- CONFIGURATION FIREBASE ---
 const firebaseConfig = {
     apiKey: "AIzaSyB3unK3pRold7z7a-qxbLDTDNvByykw1H4",
     authDomain: "cineberry.firebaseapp.com",
@@ -11,26 +12,44 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 const API_KEY = '9fa60350cd740b9049ebef19f4e22487';
+
 let maListe = [];
 let filmActuelId = null;
 
+// --- SYNCHRONISATION AVEC FIREBASE ---
 database.ref('films').on('value', (snapshot) => {
     const data = snapshot.val();
     maListe = data ? Object.values(data) : [];
     afficherListe();
 });
 
-// RECHERCHE TMDB
+// --- GESTION DES ANIMATIONS (Classes 'show') ---
+function toggleElement(id, show) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (show) {
+        el.style.display = 'block';
+        setTimeout(() => el.classList.add('show'), 10);
+    } else {
+        el.classList.remove('show');
+        setTimeout(() => el.style.display = 'none', 400);
+    }
+}
+
+// --- RECHERCHE ET AJOUT ---
 async function rechercherEnDirect() {
     const query = document.getElementById('filmInput').value.trim();
     const dropdown = document.getElementById('searchResults');
     if (query.length < 2) { dropdown.style.display = 'none'; return; }
+
     try {
         const res = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(query)}&language=fr-FR`);
         const data = await res.json();
         dropdown.innerHTML = "";
         dropdown.style.display = 'block';
+
         data.results.slice(0, 8).forEach(m => {
+            if (m.media_type === 'person') return; // On ignore les fiches acteurs
             const item = document.createElement('div');
             item.className = "result-item";
             const titre = m.title || m.name;
@@ -39,26 +58,32 @@ async function rechercherEnDirect() {
             item.onclick = () => selectionnerFilm(m.id, m.media_type);
             dropdown.appendChild(item);
         });
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Erreur recherche:", e); }
 }
 
 async function selectionnerFilm(id, type) {
     document.getElementById('searchResults').style.display = 'none';
+    document.getElementById('filmInput').value = "";
     if (maListe.some(f => f.id === id)) return;
+
     try {
         const res = await fetch(`https://api.themoviedb.org/3/${type}/${id}?api_key=${API_KEY}&language=fr-FR`);
         const m = await res.json();
         const nouveau = {
-            id: m.id, titre: m.title || m.name, desc: m.overview,
+            id: m.id,
+            titre: m.title || m.name,
+            desc: m.overview,
+            note: m.vote_average ? m.vote_average.toFixed(1) : "N/A",
             poster: `https://image.tmdb.org/t/p/w500${m.poster_path}`,
             banner: `https://image.tmdb.org/t/p/original${m.backdrop_path}`,
             videoUrl: "" 
         };
         maListe.unshift(nouveau);
         database.ref('films').set(maListe);
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Erreur ajout:", e); }
 }
 
+// --- AFFICHAGE DU CATALOGUE ---
 function afficherListe() {
     const grid = document.getElementById('catalogGrid');
     grid.innerHTML = "";
@@ -70,57 +95,87 @@ function afficherListe() {
     });
 }
 
-
+// --- MODALE DÉTAILS ---
 function ouvrirModal(id) {
     const m = maListe.find(f => f.id === id);
     if (!m) return;
     filmActuelId = id;
-    
-    document.getElementById('modalBanner').style.backgroundImage = `url(${m.banner})`;
-    document.getElementById('modalBanner').style.display = "block";
-    document.getElementById('videoContainer').style.display = "none";
-    document.getElementById('videoContainer').innerHTML = ""; // Reset video
-    
+
+    document.getElementById('modalPoster').src = m.poster;
     document.getElementById('modalTitle').innerText = m.titre;
-    document.getElementById('modalDesc').innerText = m.desc || "Pas de synopsis.";
+    document.getElementById('modalMeta').innerText = `Note: ⭐ ${m.note}/10`;
+    document.getElementById('modalDesc').innerText = m.desc || "Aucun synopsis disponible.";
     
     const playSection = document.getElementById('playSection');
-    if (m.videoUrl) {
-        playSection.innerHTML = `<button onclick="lancerVideo('${m.videoUrl}')" class="btn-play"><span>▶</span> Lecture</button>`;
+    if (m.videoUrl && m.videoUrl !== "") {
+        playSection.innerHTML = `<button onclick="lancerVideoFullscreen('${m.videoUrl}')" class="btn-play-thin">Visionner</button>`;
         document.getElementById('adminPanel').style.display = "none";
     } else {
-        playSection.innerHTML = "";
+        playSection.innerHTML = `<p style="color:#444; font-style:italic; font-weight:300;">Vidéo non liée.</p>`;
         document.getElementById('adminPanel').style.display = "flex";
     }
 
     document.getElementById('btnDelete').onclick = () => supprimerFilm(m.id);
-    document.getElementById('movieModal').style.display = 'block';
-    document.getElementById('modalOverlay').style.display = 'block';
-}
-
-function lancerVideo(url) {
-    const container = document.getElementById('videoContainer');
-    const banner = document.getElementById('modalBanner');
     
-    // TRANSFORMATION DU LIEN DRIVE POUR IFRAME
-    // On passe de : ...uc?export=download&id=XYZ
-    // À : ...file/d/XYZ/preview
-    let embedUrl = url.replace('uc?export=download&id=', 'file/d/').replace('uc?id=', 'file/d/') + '/preview';
-    embedUrl = embedUrl.replace('&export=open', '');
-
-    banner.style.display = "none";
-    container.style.display = "block";
-    container.innerHTML = `<iframe src="${embedUrl}" allow="autoplay" allowfullscreen></iframe>`;
+    toggleElement('modalOverlay', true);
+    toggleElement('movieModal', true);
+    document.body.style.overflow = 'hidden';
 }
 
+function fermerModal() {
+    toggleElement('modalOverlay', false);
+    toggleElement('movieModal', false);
+    document.body.style.overflow = 'auto';
+}
+
+// --- LECTURE VIDÉO (OVERLAY PLEIN ÉCRAN) ---
+function lancerVideoFullscreen(url) {
+    const videoFullscreen = document.getElementById('videoFullscreen');
+    const container = document.getElementById('videoContainer');
+    
+    // Nettoyage et transformation du lien Drive pour Iframe
+    let driveId = "";
+    const match = url.match(/\/d\/(.+?)\//) || url.match(/id=(.+?)(&|$)/);
+    if (match) {
+        driveId = match[1];
+    } else {
+        // Si c'est déjà un lien direct type uc?id=
+        const urlParams = new URLSearchParams(url.split('?')[1]);
+        driveId = urlParams.get('id');
+    }
+
+    if (!driveId) {
+        alert("Erreur de lien Drive.");
+        return;
+    }
+
+    const embedUrl = `https://drive.google.com/file/d/${driveId}/preview`;
+
+    container.innerHTML = `<iframe src="${embedUrl}" allow="autoplay" allowfullscreen></iframe>`;
+    
+    toggleElement('videoFullscreen', true);
+    fermerModal(); // On ferme la modale d'info pour l'immersion
+}
+
+function fermerVideo() {
+    const container = document.getElementById('videoContainer');
+    container.innerHTML = ""; // Coupe le flux
+    toggleElement('videoFullscreen', false);
+}
+
+// --- ADMINISTRATION DES LIENS ---
 function enregistrerLienAutomatique() {
     const rawUrl = document.getElementById('urlInput').value.trim();
     if (!rawUrl) return;
 
+    // Extraction de l'ID pour stockage propre
     const match = rawUrl.match(/\/d\/(.+?)\//) || rawUrl.match(/id=(.+?)(&|$)/);
     const driveId = match ? match[1] : null;
 
-    if (!driveId) return alert("Lien Drive invalide");
+    if (!driveId) {
+        alert("Lien Google Drive non reconnu.");
+        return;
+    }
 
     const finalUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
     
@@ -128,19 +183,14 @@ function enregistrerLienAutomatique() {
     if (idx !== -1) {
         maListe[idx].videoUrl = finalUrl;
         database.ref('films').set(maListe);
-        ouvrirModal(filmActuelId);
+        document.getElementById('urlInput').value = "";
+        ouvrirModal(filmActuelId); // Refresh bouton
     }
 }
 
-
-function fermerModal() {
-    document.getElementById('movieModal').style.display = 'none';
-    document.getElementById('modalOverlay').style.display = 'none';
-    document.getElementById('mainPlayer').pause();
-}
-
+// --- ACTIONS DIVERSES ---
 function supprimerFilm(id) {
-    if (confirm("Supprimer ?")) {
+    if (confirm("Retirer ce titre de votre vidéothèque ?")) {
         maListe = maListe.filter(f => f.id !== id);
         database.ref('films').set(maListe);
         fermerModal();
@@ -151,4 +201,11 @@ function choisirFilmAleatoire() {
     if (maListe.length === 0) return;
     const f = maListe[Math.floor(Math.random() * maListe.length)];
     ouvrirModal(f.id);
+}
+
+// Fermer les résultats de recherche si on clique ailleurs
+window.onclick = function(event) {
+    if (!event.target.matches('.search-bar')) {
+        document.getElementById('searchResults').style.display = 'none';
+    }
 }
