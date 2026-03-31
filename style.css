@@ -131,6 +131,25 @@ nav {
     z-index: 10;
 }
 
+.btn-delete {
+    background: transparent;
+    color: #666;
+    border: 1px solid #333;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 0.9rem;
+    margin-top: 20px;
+}
+
+.btn-delete:hover {
+    background: #ce1212;
+    /* Un rouge plus vif pour l'alerte */
+    color: white;
+    border-color: #ce1212;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;

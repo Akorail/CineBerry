@@ -88,9 +88,25 @@ function ouvrirModal(id) {
     } else {
         vContainer.innerHTML = `<p class="text-muted mt-3 italic">Lier un fichier MP4 dans le code pour lire.</p>`;
     }
+    const btnDelete = document.getElementById('btnDelete');
+    btnDelete.onclick = () => supprimerFilm(m.id);
 
     document.getElementById('movieModal').style.display = 'block';
     document.getElementById('modalOverlay').style.display = 'block';
+}
+
+// NOUVELLE FONCTION de suppression
+function supprimerFilm(id) {
+    // On demande confirmation pour éviter les erreurs
+    if (confirm("Voulez-vous vraiment retirer ce film du catalogue ?")) {
+        // On filtre la liste pour garder tous les films SAUF celui qui a cet ID
+        maListe = maListe.filter(f => f.id !== id);
+
+        sauvegarder();      // On enregistre la nouvelle liste
+        afficherListe();    // On rafraîchit la grille
+        fermerModal();      // On ferme la fenêtre
+    }
+
 }
 
 function fermerModal() {
