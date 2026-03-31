@@ -1,4 +1,3 @@
-// CONFIGURATION FIREBASE
 const firebaseConfig = {
     apiKey: "AIzaSyB3unK3pRold7z7a-qxbLDTDNvByykw1H4",
     authDomain: "cineberry.firebaseapp.com",
@@ -14,26 +13,24 @@ const database = firebase.database();
 
 const API_KEY = '9fa60350cd740b9049ebef19f4e22487';
 let maListe = [];
+let filmActuelId = null;
 
-// SYNCHRONISATION CLOUD
+// SYNCHRONISATION FIREBASE
 database.ref('films').on('value', (snapshot) => {
     const data = snapshot.val();
     maListe = data ? Object.values(data) : [];
     afficherListe();
-    console.log("Cloud synchronisé ☁️");
 });
 
-// RECHERCHE AUTO-COMPLÉTION
+// RECHERCHE
 async function rechercherEnDirect() {
     const query = document.getElementById('filmInput').value.trim();
     const dropdown = document.getElementById('searchResults');
-
     if (query.length < 2) { dropdown.style.display = 'none'; return; }
 
     try {
         const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}&language=fr-FR`);
         const data = await res.json();
-
         if (data.results) {
             dropdown.innerHTML = "";
             dropdown.style.display = 'block';
@@ -41,7 +38,7 @@ async function rechercherEnDirect() {
                 const item = document.createElement('div');
                 item.className = "result-item";
                 const img = film.poster_path ? `https://image.tmdb.org/t/p/w92${film.poster_path}` : 'https://via.placeholder.com/40x60';
-                item.innerHTML = `<img src="${img}"><div class="info"><b>${film.title}</b><br><small>${film.release_date ? film.release_date.split('-')[0] : ''}</small></div>`;
+                item.innerHTML = `<img src="${img}"><div><b>${film.title}</b><br><small>${film.release_date?.split('-')[0] || ''}</small></div>`;
                 item.onclick = () => selectionnerFilm(film.id);
                 dropdown.appendChild(item);
             });
@@ -49,82 +46,95 @@ async function rechercherEnDirect() {
     } catch (e) { console.error(e); }
 }
 
-// AJOUT AU CATALOGUE
+// AJOUT
 async function selectionnerFilm(id) {
     document.getElementById('searchResults').style.display = 'none';
     document.getElementById('filmInput').value = "";
-
-    if (maListe.some(f => f.id === id)) { alert("Déjà présent !"); return; }
+    if (maListe.some(f => f.id === id)) return alert("Déjà dans le catalogue !");
 
     try {
         const res = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}&language=fr-FR`);
         const m = await res.json();
-
         const nouveau = {
-            id: m.id,
-            titre: m.title,
-            desc: m.overview,
-            duree: m.runtime,
+            id: m.id, titre: m.title, desc: m.overview, duree: m.runtime,
             note: m.vote_average.toFixed(1),
             poster: `https://image.tmdb.org/t/p/w500${m.poster_path}`,
             banner: `https://image.tmdb.org/t/p/original${m.backdrop_path}`,
-            videoUrl: "",
-            links: { netflix: "", disney: "", amazon: "" }
+            videoUrl: ""
         };
-
         maListe.unshift(nouveau);
         sauvegarder();
     } catch (e) { console.error(e); }
 }
 
-// AFFICHAGE
+// AFFICHAGE GRILLE
 function afficherListe() {
     const grid = document.getElementById('catalogGrid');
-    if (!grid) return;
     grid.innerHTML = "";
     maListe.forEach(m => {
         const card = document.createElement('div');
         card.className = "film-card";
         card.onclick = () => ouvrirModal(m.id);
-        card.innerHTML = `<img src="${m.poster}" alt="${m.titre}">`;
+        card.innerHTML = `<img src="${m.poster}">`;
         grid.appendChild(card);
     });
 }
 
-// MODALE ET STREAMING
+// MODALE ET LECTURE
 function ouvrirModal(id) {
     const m = maListe.find(f => f.id === id);
     if (!m) return;
+    filmActuelId = id;
 
     document.getElementById('modalBanner').style.backgroundImage = `url(${m.banner})`;
     document.getElementById('modalTitle').innerText = m.titre;
     document.getElementById('modalInfo').innerText = `${m.duree} min | ⭐ ${m.note}/10`;
     document.getElementById('modalDesc').innerText = m.desc || "Pas de synopsis.";
 
-    const streamDiv = document.getElementById('streamingLinks');
-    streamDiv.innerHTML = "";
-    if (m.links) {
-        if (m.links.netflix) streamDiv.innerHTML += `<a href="${m.links.netflix}" target="_blank" class="stream-link link-netflix">Netflix</a>`;
-        if (m.links.disney) streamDiv.innerHTML += `<a href="${m.links.disney}" target="_blank" class="stream-link link-disney">Disney+</a>`;
-        if (m.links.amazon) streamDiv.innerHTML += `<a href="${m.links.amazon}" target="_blank" class="stream-link link-prime">Prime</a>`;
-    }
+    const playSection = document.getElementById('playSection');
+    const videoContainer = document.getElementById('videoContainer');
+    videoContainer.style.display = "none";
 
-    const vDiv = document.getElementById('videoPlayer');
-    vDiv.innerHTML = m.videoUrl ? `<video width="100%" controls style="margin-top:20px; border-radius:8px;"><source src="${m.videoUrl}" type="video/mp4"></video>` : "";
+    if (m.videoUrl) {
+        playSection.innerHTML = `<button onclick="lancerVideo('${m.videoUrl}')" class="btn-random" style="background:#28a745; width:100%; font-size:1.2rem;">▶ LECTURE</button>`;
+    } else {
+        playSection.innerHTML = `<p style="color:#666; text-align:center;"><i>Aucune vidéo liée. Ajoutez un lien ci-dessous.</i></p>`;
+    }
 
     document.getElementById('btnDelete').onclick = () => supprimerFilm(m.id);
     document.getElementById('movieModal').style.display = 'block';
     document.getElementById('modalOverlay').style.display = 'block';
 }
 
+function lancerVideo(url) {
+    const container = document.getElementById('videoContainer');
+    const player = document.getElementById('mainPlayer');
+    player.src = url;
+    container.style.display = "block";
+    player.play();
+}
+
+function enregistrerLienVideo() {
+    const url = document.getElementById('urlInput').value.trim();
+    if (!url) return;
+    const idx = maListe.findIndex(f => f.id === filmActuelId);
+    if (idx !== -1) {
+        maListe[idx].videoUrl = url;
+        sauvegarder();
+        alert("Lien enregistré !");
+        ouvrirModal(filmActuelId);
+        document.getElementById('urlInput').value = "";
+    }
+}
+
 function fermerModal() {
     document.getElementById('movieModal').style.display = 'none';
     document.getElementById('modalOverlay').style.display = 'none';
-    document.getElementById('videoPlayer').innerHTML = "";
+    document.getElementById('mainPlayer').pause();
 }
 
 function supprimerFilm(id) {
-    if (confirm("Supprimer ?")) {
+    if (confirm("Supprimer ce film ?")) {
         maListe = maListe.filter(f => f.id !== id);
         sauvegarder();
         fermerModal();

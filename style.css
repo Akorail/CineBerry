@@ -9,10 +9,9 @@ body {
     color: white;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     margin: 0;
-    overflow-x: hidden;
 }
 
-/* Navigation */
+/* Nav */
 nav {
     display: flex;
     justify-content: space-between;
@@ -42,7 +41,7 @@ nav {
     background: var(--cramberry);
     color: white;
     border: none;
-    padding: 8px 15px;
+    padding: 8px 18px;
     border-radius: 20px;
     cursor: pointer;
     font-weight: bold;
@@ -51,6 +50,7 @@ nav {
 
 .btn-random:hover {
     transform: scale(1.1);
+    background: #c0213d;
 }
 
 /* Recherche */
@@ -61,8 +61,8 @@ nav {
 
 .search-bar {
     width: 100%;
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #333;
     border-radius: 20px;
     padding: 10px 20px;
     color: white;
@@ -123,6 +123,7 @@ nav {
 
 .film-card:hover {
     transform: scale(1.05);
+    box-shadow: 0 0 15px var(--cramberry);
 }
 
 .film-card img {
@@ -138,7 +139,7 @@ nav {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.9);
     z-index: 1500;
 }
 
@@ -153,13 +154,14 @@ nav {
     background: var(--card-bg);
     border-radius: 15px;
     z-index: 2000;
-    overflow: hidden;
+    overflow-y: auto;
+    max-height: 90vh;
 }
 
 .modal-banner {
     height: 400px;
     background-size: cover;
-    background-position: center top;
+    background-position: center;
     position: relative;
 }
 
@@ -168,13 +170,13 @@ nav {
     position: absolute;
     bottom: 0;
     width: 100%;
-    height: 60%;
+    height: 100px;
     background: linear-gradient(to top, var(--card-bg), transparent);
 }
 
 .modal-content-info {
-    padding: 0 40px 40px 40px;
-    margin-top: -60px;
+    padding: 0 40px 40px;
+    margin-top: -50px;
     position: relative;
 }
 
@@ -184,33 +186,31 @@ nav {
     margin-bottom: 15px;
 }
 
-/* Streaming Buttons */
-.streaming-container {
+/* Admin Panel */
+.admin-panel {
+    margin-top: 30px;
+    border-top: 1px solid #333;
+    padding-top: 20px;
     display: flex;
     gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
 }
 
-.stream-link {
+.admin-panel input {
+    flex: 1;
+    background: #000;
+    border: 1px solid #444;
+    color: white;
+    padding: 8px;
+    border-radius: 5px;
+}
+
+.admin-panel button {
+    background: #444;
+    color: white;
+    border: none;
     padding: 8px 15px;
     border-radius: 5px;
-    text-decoration: none;
-    color: white;
-    font-weight: bold;
-    font-size: 0.8rem;
-}
-
-.link-netflix {
-    background: #E50914;
-}
-
-.link-disney {
-    background: #0063e5;
-}
-
-.link-prime {
-    background: #00a8e1;
+    cursor: pointer;
 }
 
 .close-btn {
@@ -224,16 +224,16 @@ nav {
     width: 40px;
     height: 40px;
     cursor: pointer;
-    z-index: 10;
+    z-index: 100;
 }
 
 .btn-delete {
     background: transparent;
-    color: #555;
-    border: 1px solid #333;
+    color: #666;
+    border: 1px solid #444;
     padding: 8px 15px;
-    cursor: pointer;
     border-radius: 5px;
+    cursor: pointer;
     margin-top: 20px;
 }
 

@@ -21,8 +21,7 @@
 
     <main class="catalog-container">
         <h2 class="section-title">Tout le catalogue</h2>
-        <div id="catalogGrid" class="film-grid">
-            </div>
+        <div id="catalogGrid" class="film-grid"></div>
     </main>
 
     <div id="modalOverlay" class="overlay" onclick="fermerModal()"></div>
@@ -30,15 +29,25 @@
     <div id="movieModal" class="modal-cramberry">
         <button class="close-btn" onclick="fermerModal()">✕</button>
         <div id="modalBanner" class="modal-banner"></div>
+        
         <div class="modal-content-info">
             <h1 id="modalTitle"></h1>
             <p id="modalInfo" class="meta-info"></p>
-            
-            <div id="streamingLinks" class="streaming-container"></div>
+
+            <div id="playSection" style="margin-bottom: 25px;"></div>
             
             <p id="modalDesc"></p>
-            
-            <div id="videoPlayer"></div>
+
+            <div id="videoContainer" style="display:none; margin-top:20px;">
+                <video id="mainPlayer" width="100%" controls style="border-radius: 8px; border: 1px solid var(--cramberry);">
+                    <source src="" type="video/mp4">
+                </video>
+            </div>
+
+            <div class="admin-panel">
+                <input type="text" id="urlInput" placeholder="Lien du fichier (ex: films/video.mp4)">
+                <button onclick="enregistrerLienVideo()">Lier la vidéo</button>
+            </div>
 
             <div class="modal-footer">
                 <button id="btnDelete" class="btn-delete">Supprimer du catalogue 🗑️</button>
@@ -48,7 +57,6 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-
     <script src="script.js"></script>
 </body>
 </html>
