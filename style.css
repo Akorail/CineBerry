@@ -1,0 +1,16 @@
+body {
+    background-color: #121212;
+    color: white;
+}
+
+.card {
+    background-color: #1e1e1e;
+    border: none;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.vu {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
