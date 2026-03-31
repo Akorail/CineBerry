@@ -1,5 +1,30 @@
+// Ta configuration Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyB3unK3pRold7z7a-qxbLDTDNvByykw1H4",
+    authDomain: "cineberry.firebaseapp.com",
+    projectId: "cineberry",
+    storageBucket: "cineberry.firebasestorage.app",
+    messagingSenderId: "62488214470",
+    appId: "1:62488214470:web:9a689e1042b4cec8e890c7",
+    databaseURL: "https://cineberry-default-rtdb.europe-west1.firebasedatabase.app/" // Vérifie bien cette URL dans ta console Firebase !
+};
+
+// Initialisation de Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
 const API_KEY = '9fa60350cd740b9049ebef19f4e22487';
-let maListe = JSON.parse(localStorage.getItem('maListe')) || [];
+let maListe = [];
+
+// SYNCHRONISATION AUTOMATIQUE : 
+// Dès qu'un film est ajouté sur un PC, l'autre PC se met à jour tout seul
+database.ref('films').on('value', (snapshot) => {
+    const data = snapshot.val();
+    // On transforme l'objet Firebase en tableau
+    maListe = data ? Object.values(data) : [];
+    afficherListe();
+    console.log("Catalogue synchronisé avec le Cloud !");
+});
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', () => {
@@ -130,7 +155,7 @@ function supprimerFilm(id) {
 }
 
 function sauvegarder() {
-    localStorage.setItem('maListe', JSON.stringify(maListe));
+    database.ref('films').set(maListe);
 }
 
 // Fermer le menu si on clique ailleurs
