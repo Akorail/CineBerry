@@ -133,28 +133,26 @@ function lancerVideoFullscreen(url) {
     const videoFullscreen = document.getElementById('videoFullscreen');
     const container = document.getElementById('videoContainer');
     
-    // Nettoyage et transformation du lien Drive pour Iframe
-    let driveId = "";
-    const match = url.match(/\/d\/(.+?)\//) || url.match(/id=(.+?)(&|$)/);
-    if (match) {
-        driveId = match[1];
-    } else {
-        // Si c'est déjà un lien direct type uc?id=
-        const urlParams = new URLSearchParams(url.split('?')[1]);
-        driveId = urlParams.get('id');
+    // On s'assure d'avoir le lien de téléchargement direct pour le flux brut
+    let directUrl = url;
+    if (url.includes('file/d/')) {
+        const id = url.match(/\/d\/(.+?)\//)[1];
+        directUrl = `https://drive.google.com/uc?export=download&id=${id}`;
     }
 
-    if (!driveId) {
-        alert("Erreur de lien Drive.");
-        return;
-    }
-
-    const embedUrl = `https://drive.google.com/file/d/${driveId}/preview`;
-
-    container.innerHTML = `<iframe src="${embedUrl}" allow="autoplay" allowfullscreen></iframe>`;
+    // On injecte le lecteur HTML5 natif (Qualité Originale)
+    container.innerHTML = `
+        <video id="rawPlayer" controls autoplay style="width:100%; height:100%; outline:none;">
+            <source src="${directUrl}" type="video/mp4">
+            Votre navigateur ne supporte pas le lecteur brut.
+        </video>`;
     
     toggleElement('videoFullscreen', true);
-    fermerModal(); // On ferme la modale d'info pour l'immersion
+    fermerModal();
+
+    // Petit script pour mettre en plein écran automatiquement
+    const player = document.getElementById('rawPlayer');
+    player.play().catch(() => console.log("L'autostart a été bloqué par le navigateur, cliquez sur Play."));
 }
 
 function fermerVideo() {
